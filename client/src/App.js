@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+import _ from 'lodash';
 import ReactPlayer from 'react-player'
 import './App.css';
 
@@ -6,42 +7,64 @@ import io from 'socket.io-client'
 const socket = io.connect("http://localhost:5000")
 
 function App() {
-  const [ playing, setPlaying ] = useState(true);
+  const [ isPlaying, setPlaying ] = useState(false);
   const [ progress, setProgress ] = useState(0)
 
   const player = useRef(null);
-  
+
+  ////////////////////////////////
+  //sending data to server
   const handleProgressChange = (v) => {
     socket.emit("progress_change", { progress: v.playedSeconds})
     setProgress(v.playedSeconds);
   }
   const handlePause = () => {
-    console.log("hapause");
-    socket.emit("pause")
-  }
+    setPlaying(false);
+    socket.emit("pause");
+    console.log("false meg lett hivva")
+  };
+  
   const handlePlay = () => {
-    socket.emit("play")
-  }
+    setPlaying(true);
+    socket.emit("play");
+    console.log("true meg lett hivva")
+  };
+  
 
+  ////////////////////////////////
+  //receiving data from server
   useEffect(() => {
-    socket.on("change_progress", (data) => {
-      const other_progress = data.progress;
-
-      console.log("nem mi:" + other_progress)
-
-      if((other_progress - 3 < progress < other_progress + 3)){
-        player.current.seekTo(other_progress)
-        console.log("irgum burgum")
-      }
-    })
-    socket.on("pause", () => {
-      setPlaying(false);
-    })
-    socket.on("play", () => {
+    const handlePlay = () => {
+      console.log("true meg lett hivva");
       setPlaying(true);
-    })
-  }, [])
-
+    };
+  
+    const handlePause = () => {
+      console.log("false meg lett hivva");
+      setPlaying(false);
+    };
+  
+    const handleChangeProgress = (data) => {
+      const host_progress = data.progress;
+      console.log(isPlaying);
+      
+      if (!(host_progress - 3 < progress && progress < host_progress + 3) && isPlaying) {
+        console.log("anyad");
+        player.current.seekTo(host_progress);
+      }
+    };
+  
+    socket.on("play", handlePlay);
+    socket.on("pause", handlePause);
+    socket.on("change_progress", handleChangeProgress);
+  
+    return () => {
+      socket.off("play", handlePlay);
+      socket.off("pause", handlePause);
+      socket.off("change_progress", handleChangeProgress);
+    };
+  }, [isPlaying, progress]);
+  
   return (
     <div className="App">
       <ReactPlayer url='https://www.youtube.com/watch?v=VBoRLJimVzc' 
@@ -56,12 +79,11 @@ function App() {
         
         //get data
         onProgress={handleProgressChange}
-
         onPause={handlePause}
         onPlay={handlePlay}
 
         //set data
-        playing={playing} 
+        playing={isPlaying} 
       />
     </div>
   );

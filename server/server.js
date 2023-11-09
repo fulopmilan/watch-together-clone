@@ -21,11 +21,11 @@ const io = new Server(server, {
 });
 
 var host = "";
-//CODE
 io.on("connection", (socket) => {
     console.log("User has connected to server: " + socket.id)
     if(host === "")
         host = socket.id;
+    
     
     if(socket.id === host) {
         socket.on("progress_change", (data) => {
