@@ -1,23 +1,29 @@
 import { useRef, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom'
 import ReactPlayer from 'react-player'
+import Message from '../Index/Message/Message.js'
 
 import './App.css';
-
-import io from 'socket.io-client'
-const socket = io.connect("http://localhost:5000")
+import { socket } from '../../socket.js'
 
 function App() {
+  //Initialize
   let { roomName } = useParams();
   useEffect(() => {
     socket.emit("joinRoom", roomName)
   }, [roomName]);
 
+  ////////////////////////////////
+  //storing every message
+  const [ chatAllMessages, setChatAllMessages] = useState([]);
+  //storing client side message that aren't sent yet
+  const [ chatMessage, setChatMessage] = useState("");
+  //video settings
   const [ url, setUrl] = useState("https://www.youtube.com/watch?v=UA3gCPh3PEQ&ab_channel=BoyWithUke");
   const [ isPlaying, setPlaying ] = useState(false);
   const [ progress, setProgress ] = useState(0)
-
   const player = useRef(null);
+  ////////////////////////////////
 
   ////////////////////////////////
   //sending data to server
@@ -35,15 +41,16 @@ function App() {
     socket.emit("play");
   };
 
-  /*const onUrlChange = (v) => { 
-
-  }*/
-
-  const onUrlSubmit = (v) => {
-    const newUrl = v.target.value;
-    socket.emit("sendUrl", {newUrl});
+  //listen for changes in the client side input field
+  const onChatMessageChange = (v) => { 
+    setChatMessage(v.target.value);
   }
-  
+
+  //listen for the submission of the chat message
+  const onChatMessageSubmit = () => { 
+    socket.emit("sendChatMessage", { message: chatMessage})
+  }
+  ////////////////////////////////
 
   ////////////////////////////////
   //receiving data from server
@@ -66,23 +73,29 @@ function App() {
     };
 
     const handleChangeVideo = (data) => {
-      console.log("+" + data.newUrl);
-      setUrl(data.newUrl);
+      setUrl(data.message);
+    }
+
+    const handleChatMessage = (data) => {
+      setChatAllMessages(oldChatAllMessages => [...oldChatAllMessages, data.message]);
     }
   
     socket.on("play", handlePlay);
     socket.on("pause", handlePause);
     socket.on("changeProgress", handleChangeProgress);
     socket.on("changeVideo", handleChangeVideo);
+    socket.on("sendChatMessage", handleChatMessage);
   
     return () => {
       socket.off("play", handlePlay);
       socket.off("pause", handlePause);
       socket.off("changeProgress", handleChangeProgress);
       socket.off("changeVideo", handleChangeVideo);
+      socket.off("sendChatMessage", handleChatMessage);
     };
-  }, [isPlaying, progress, url]);
-  
+  }, [isPlaying, progress, url, chatAllMessages]);
+  ////////////////////////////////
+
   return (
     <div className="App">
       <ReactPlayer url={url} 
@@ -104,7 +117,13 @@ function App() {
         playing={isPlaying} 
       />
       <div>
-        <input onChange={onUrlSubmit} type='text' placeholder='url to the youtube video'/>
+        <input onChange={onChatMessageChange} type='text' placeholder='send message to the chat here'/>
+        <button onClick={onChatMessageSubmit}>Submit</button>
+      </div>
+      <div>
+        {chatAllMessages.map((chatMessage, index) => (
+          <Message key={index} message={chatMessage} />
+        ))}
       </div>
     </div>
   );

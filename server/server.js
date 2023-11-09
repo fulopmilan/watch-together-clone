@@ -53,10 +53,12 @@ io.on("connection", (socket) => {
       });
     }
 
-    //client specific actions
-    socket.on("sendUrl", (data) => {
-        console.log(data._url);
+    //client actions
+    socket.on("changeVideo", (data) => {
         io.to(roomName).emit("changeVideo", data);
+    });
+    socket.on("sendChatMessage", (data) => {
+        io.to(roomName).emit("sendChatMessage", data);
     });
   });
 
