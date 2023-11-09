@@ -10,10 +10,10 @@ const socket = io.connect("http://localhost:5000")
 function App() {
   let { roomName } = useParams();
   useEffect(() => {
-    console.log(roomName);
     socket.emit("joinRoom", roomName)
   }, [roomName]);
 
+  const [ url, setUrl] = useState("https://www.youtube.com/watch?v=UA3gCPh3PEQ&ab_channel=BoyWithUke");
   const [ isPlaying, setPlaying ] = useState(false);
   const [ progress, setProgress ] = useState(0)
 
@@ -28,26 +28,31 @@ function App() {
   const handlePause = () => {
     setPlaying(false);
     socket.emit("pause");
-    console.log("false meg lett hivva")
   };
   
   const handlePlay = () => {
     setPlaying(true);
     socket.emit("play");
-    console.log("true meg lett hivva")
   };
+
+  /*const onUrlChange = (v) => { 
+
+  }*/
+
+  const onUrlSubmit = (v) => {
+    const newUrl = v.target.value;
+    socket.emit("sendUrl", {newUrl});
+  }
   
 
   ////////////////////////////////
   //receiving data from server
   useEffect(() => {
     const handlePlay = () => {
-      console.log("true meg lett hivva");
       setPlaying(true);
     };
   
     const handlePause = () => {
-      console.log("false meg lett hivva");
       setPlaying(false);
     };
   
@@ -56,25 +61,31 @@ function App() {
       console.log(isPlaying);
       
       if (!(host_progress - 3 < progress && progress < host_progress + 3) && isPlaying) {
-        console.log("anyad");
         player.current.seekTo(host_progress);
       }
     };
+
+    const handleChangeVideo = (data) => {
+      console.log("+" + data.newUrl);
+      setUrl(data.newUrl);
+    }
   
     socket.on("play", handlePlay);
     socket.on("pause", handlePause);
     socket.on("changeProgress", handleChangeProgress);
+    socket.on("changeVideo", handleChangeVideo);
   
     return () => {
       socket.off("play", handlePlay);
       socket.off("pause", handlePause);
       socket.off("changeProgress", handleChangeProgress);
+      socket.off("changeVideo", handleChangeVideo);
     };
-  }, [isPlaying, progress]);
+  }, [isPlaying, progress, url]);
   
   return (
     <div className="App">
-      <ReactPlayer url='https://www.youtube.com/watch?v=VBoRLJimVzc' 
+      <ReactPlayer url={url} 
         //reference this player
         ref={player}
 
@@ -92,6 +103,9 @@ function App() {
         //set data
         playing={isPlaying} 
       />
+      <div>
+        <input onChange={onUrlSubmit} type='text' placeholder='url to the youtube video'/>
+      </div>
     </div>
   );
 }

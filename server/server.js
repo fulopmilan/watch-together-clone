@@ -38,8 +38,8 @@ io.on("connection", (socket) => {
 
     console.log("User has connected to server: " + socket.id + " in room " + roomName);
 
+    //host specific actions
     if (socket.isHost) {
-      // Host-specific event listeners
       socket.on("progressChange", (data) => {
         io.to(roomName).emit("changeProgress", data);
       });
@@ -52,7 +52,14 @@ io.on("connection", (socket) => {
         io.to(roomName).emit("play");
       });
     }
+
+    //client specific actions
+    socket.on("sendUrl", (data) => {
+        console.log(data._url);
+        io.to(roomName).emit("changeVideo", data);
+    });
   });
+
 
   socket.on("disconnect", () => {
     // Check if it's the host leaving the room
