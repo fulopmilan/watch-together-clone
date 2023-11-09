@@ -1,12 +1,19 @@
 import { useRef, useEffect, useState } from 'react';
-import _ from 'lodash';
+import { useParams } from 'react-router-dom'
 import ReactPlayer from 'react-player'
+
 import './App.css';
 
 import io from 'socket.io-client'
 const socket = io.connect("http://localhost:5000")
 
 function App() {
+  let { roomName } = useParams();
+  useEffect(() => {
+    console.log(roomName);
+    socket.emit("joinRoom", roomName)
+  }, [roomName]);
+
   const [ isPlaying, setPlaying ] = useState(false);
   const [ progress, setProgress ] = useState(0)
 
@@ -15,7 +22,7 @@ function App() {
   ////////////////////////////////
   //sending data to server
   const handleProgressChange = (v) => {
-    socket.emit("progress_change", { progress: v.playedSeconds})
+    socket.emit("progressChange", { progress: v.playedSeconds})
     setProgress(v.playedSeconds);
   }
   const handlePause = () => {
@@ -56,12 +63,12 @@ function App() {
   
     socket.on("play", handlePlay);
     socket.on("pause", handlePause);
-    socket.on("change_progress", handleChangeProgress);
+    socket.on("changeProgress", handleChangeProgress);
   
     return () => {
       socket.off("play", handlePlay);
       socket.off("pause", handlePause);
-      socket.off("change_progress", handleChangeProgress);
+      socket.off("changeProgress", handleChangeProgress);
     };
   }, [isPlaying, progress]);
   

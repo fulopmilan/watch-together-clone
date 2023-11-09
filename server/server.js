@@ -20,31 +20,51 @@ const io = new Server(server, {
     }
 });
 
-var host = "";
+const rooms = {};
+
 io.on("connection", (socket) => {
-    console.log("User has connected to server: " + socket.id)
-    if(host === "")
-        host = socket.id;
-    
-    
-    if(socket.id === host) {
-        socket.on("progress_change", (data) => {
-            socket.broadcast.emit("change_progress", data);
-        })
-        socket.on("pause", () => {
-            socket.broadcast.emit("pause");
-        })
-        socket.on("play", () => {
-            socket.broadcast.emit("play");
-        })
+  socket.on("joinRoom", (roomName) => {
+    // Check if the room exists
+    if (rooms[roomName]) {
+      // Join the existing room
+      socket.join(roomName);
+      socket.isHost = false;
+    } else {
+      // Create a new room
+      rooms[roomName] = true;
+      socket.join(roomName);
+      socket.isHost = true;
     }
 
-    socket.on("disconnect", () => {
-        if(socket.id === host) {
-            host = "";
-        }
-    })
-})
+    console.log("User has connected to server: " + socket.id + " in room " + roomName);
+
+    if (socket.isHost) {
+      // Host-specific event listeners
+      socket.on("progressChange", (data) => {
+        io.to(roomName).emit("changeProgress", data);
+      });
+
+      socket.on("pause", () => {
+        io.to(roomName).emit("pause");
+      });
+
+      socket.on("play", () => {
+        io.to(roomName).emit("play");
+      });
+    }
+  });
+
+  socket.on("disconnect", () => {
+    // Check if it's the host leaving the room
+    if (socket.isHost && socket.room) {
+      // Delete the room
+      delete rooms[socket.room];
+      delete socket.room;
+      delete socket.isHost;
+    }
+  });
+});
+
 
 server.listen(process.env.PORT, () => {
     console.log("Server is listening on port " + process.env.PORT);
