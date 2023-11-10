@@ -1,46 +1,80 @@
 import { useRef, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'
 import ReactPlayer from 'react-player'
-import Message from './Message/Message.js'
 
-import './App.css';
-import { socket } from '../../socket.js'
+import { socket } from './socket.js'
+
+import ChatInput from './services/ChatInput/ChatInput.js';
+import ChatList from './services/ChatList/ChatList.js';
+import Rename from './services/Rename/Rename.js';
+import UserList from './services/UserList/UserList.js';
 
 function App() {
 
   //navigation
   const navigate = useNavigate();
 
-  //Initialize
+  //initialize
   let { roomName } = useParams();
   useEffect(() => {
     socket.emit("joinRoom", roomName)
   }, [roomName]);
 
-  ////////////////////////////////
-  //storing the client's id
+  //#region variables
+
+  //the amount of delay (in seconds) before the user gets their video progress corrected
+  const maxBuffer = 3;
+
+  /*
+   * stores the client's id
+   * used in UserList.js, for checking if the socket is the current user.
+   * set by server side only
+   */
   const [ clientID, setClientID ] = useState("");
-  //storing if the client is the host
+
+  /*
+   * stores if the client is the host
+   * used for checking if this socket is the host in UserList.js
+   * set by server side only
+   */
   const [ isHost, setIsHost ] = useState(false);
-  //storing every user in the room
+
+  /*
+   * stores every user in the room
+   * used for listing users
+   * changed by server side only
+   */
   const [ userList, setUserList] = useState([]);
-  //storing client side username that isn't sent yet
+
+  /*
+   * stores username from text input
+   * set by client side only
+   */
   const [ userName, setUserName] = useState("");
 
-  //storing every message in the room
+  /*
+   * stores every message in the room
+   * used for displaying messages in ChatList.js
+   * set by server side only
+   */
   const [ chatAllMessages, setChatAllMessages] = useState([]);
-  //storing client side message that aren't sent yet
+  
+  /*
+   * stores message from text input
+   * set by client side only
+   */
   const [ chatMessage, setChatMessage] = useState("");
 
   //video settings
   const [ url, setUrl] = useState("https://www.youtube.com/watch?v=UA3gCPh3PEQ&ab_channel=BoyWithUke");
   const [ isPlaying, setPlaying ] = useState(false);
   const [ progress, setProgress ] = useState(0)
+  
   const player = useRef(null);
-  ////////////////////////////////
 
-  ////////////////////////////////
-  //client side functions
+  //#endregion
+
+  //#region client side functions
   const onChatMessageChange = (v) => { 
     setChatMessage(v.target.value);
   }
@@ -48,10 +82,9 @@ function App() {
   const onUserNameChange = (v) => { 
     setUserName(v.target.value);
   }
-  ////////////////////////////////
+  //#endregion
 
-  ////////////////////////////////
-  //sending data to server
+  //#region sending data to server
   const handleProgressChange = (v) => {
     socket.emit("progressChange", { progress: v.playedSeconds})
     setProgress(v.playedSeconds);
@@ -67,9 +100,11 @@ function App() {
     socket.emit("play");
   };
 
-  //host only data sending
+  //sets the new host in both client-side and server-side
   const handleSetHost = (id) => {
+    //server side
     socket.emit("setHost", id);
+    //client side
     setIsHost(false);
   };
 
@@ -79,20 +114,21 @@ function App() {
 
   //submit chat message
   const onChatMessageSubmit = () => { 
+    //message validation
     if(chatMessage !== "")
       socket.emit("sendChatMessage", { message: chatMessage})
+
     setChatMessage("");
   }
 
+  //changing username
   const onUserNameSubmit = () => { 
-    console.log(userName);
     socket.emit("changeUsername", { username: userName})
   }
 
-  ////////////////////////////////
+  //#endregion
 
-  ////////////////////////////////
-  //receiving data from server
+  //#region receiving data from server
   useEffect(() => {
     const handlePlay = () => {
       setPlaying(true);
@@ -103,10 +139,11 @@ function App() {
     };
   
     const handleChangeProgress = (data) => {
-      const host_progress = data.progress;
-      
-      if (!(host_progress - 3 < progress && progress < host_progress + 3) && isPlaying) {
-        player.current.seekTo(host_progress);
+      const hostProgress = data.progress;
+
+      //if the client's progress is ahead or before the server's progress by maxBuffer seconds, then correct the progress.
+      if (!(hostProgress - maxBuffer < progress && progress < hostProgress + maxBuffer) && isPlaying) {
+        player.current.seekTo(hostProgress);
       }
     };
 
@@ -115,7 +152,6 @@ function App() {
     }
 
     const handleChatMessage = (data) => {
-      console.log(data);
       const message = data.username + " : " +data.message;
       setChatAllMessages(oldChatAllMessages => [...oldChatAllMessages, message]);
     }
@@ -134,21 +170,23 @@ function App() {
     }
 
     const handleOwnIDSet = (data) => {
-      console.log(data);
       setClientID(data);
     }
   
-    socket.on("play", handlePlay);
-    socket.on("pause", handlePause);
-    socket.on("changeProgress", handleChangeProgress);
-    socket.on("changeVideo", handleChangeVideo);
-    socket.on("sendChatMessage", handleChatMessage);
-    socket.on("updateUserList", handleUpdateUserList);
-    socket.on("setHost", handleSetHost);
-    socket.on("kickUser", handleKickUser);
-    socket.on("setOwnID", handleOwnIDSet);
+    //#region socket.on
+      socket.on("play", handlePlay);
+      socket.on("pause", handlePause);
+      socket.on("changeProgress", handleChangeProgress);
+      socket.on("changeVideo", handleChangeVideo);
+      socket.on("sendChatMessage", handleChatMessage);
+      socket.on("updateUserList", handleUpdateUserList);
+      socket.on("setHost", handleSetHost);
+      socket.on("kickUser", handleKickUser);
+      socket.on("setOwnID", handleOwnIDSet);
+    //#endregion
   
     return () => {
+      //#region socket.off
       socket.off("play", handlePlay);
       socket.off("pause", handlePause);
       socket.off("changeProgress", handleChangeProgress);
@@ -158,9 +196,10 @@ function App() {
       socket.off("setHost", handleSetHost);
       socket.off("kickUser", handleKickUser);
       socket.off("setOwnID", handleOwnIDSet);
+      //#endregion
     };
-  }, [isPlaying, progress, url, chatAllMessages, userList, isHost]);
-  ////////////////////////////////
+  }, [isPlaying, progress, url, chatAllMessages, userList, isHost, navigate]);
+  //#endregion
 
   return (
     <div className="App">
@@ -185,38 +224,32 @@ function App() {
       />
 
       {/* chat input */}
-      <div>
-        <input value={chatMessage} onChange={onChatMessageChange} type='text' placeholder='send message to the chat here'/>
-        <button onClick={onChatMessageSubmit}>Submit</button>
-      </div>
+      <ChatInput 
+        chatMessage={chatMessage} 
+        onChatMessageChange={onChatMessageChange} 
+        onChatMessageSubmit={onChatMessageSubmit}
+      />
 
       {/* chatlist */}
-      <div>
-        {chatAllMessages.map((chatMessage, index) => (
-          <Message key={index} message={chatMessage} />
-        ))}
-      </div>
+      <ChatList
+        chatAllMessages={chatAllMessages} 
+      />
 
       {/* rename */}
-      <div>
-        <input value={userName} onChange={onUserNameChange} type='text' placeholder='set username'></input>
-        <button onClick={onUserNameSubmit}>Submit</button>
-      </div>
+      <Rename
+        userName={userName} 
+        onUserNameChange={onUserNameChange} 
+        onUserNameSubmit={onUserNameSubmit}
+      />
 
       {/* userlist */}
-      <div>
-        {userList.map((user, index) => (
-          <div>
-            <p key={index}>{user.username}</p>
-            {(isHost && user.id != clientID) && 
-              <div>
-                <button onClick={() => {handleSetHost(user.id)}}>set host</button>
-                <button onClick={() => {handleKickUser(user.id)}}>kick</button>
-              </div>
-            }
-          </div>
-        ))}
-      </div>
+      <UserList
+        userList={userList}
+        isHost={isHost}
+        clientID={clientID}
+        handleSetHost={handleSetHost}
+        handleKickUser={handleKickUser}
+      />
     </div>
   );
 }

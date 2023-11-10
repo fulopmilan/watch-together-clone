@@ -1,4 +1,4 @@
-import { socket } from '../../../socket.js'
+import { socket } from '../../socket.js'
 export default function Chat({message}) {
 
     //URL validation
