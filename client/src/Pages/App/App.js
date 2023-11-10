@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import ReactPlayer from 'react-player'
 import Message from './Message/Message.js'
 
@@ -7,6 +7,10 @@ import './App.css';
 import { socket } from '../../socket.js'
 
 function App() {
+
+  //navigation
+  const navigate = useNavigate();
+
   //Initialize
   let { roomName } = useParams();
   useEffect(() => {
@@ -14,6 +18,8 @@ function App() {
   }, [roomName]);
 
   ////////////////////////////////
+  //store if the client is the host
+  const [ isHost, setIsHost ] = useState(false);
   //storing every user in the room
   const [ userList, setUserList] = useState([]);
   //storing client side username that isn't sent yet
@@ -57,6 +63,16 @@ function App() {
   const handlePlay = () => {
     setPlaying(true);
     socket.emit("play");
+  };
+
+  //host only data sending
+  const handleSetHost = (id) => {
+    socket.emit("setHost", id);
+    setIsHost(false);
+  };
+
+  const handleKickUser = (id) => {
+    socket.emit("kickUser", id);
   };
 
   //submit chat message
@@ -105,6 +121,14 @@ function App() {
     const handleUpdateUserList = (data) => {
       setUserList(data);
     }
+
+    const handleSetHost = (data) => {
+      setIsHost(data);
+    }
+
+    const handleKickUser = () => {
+      navigate('/');
+    }
   
     socket.on("play", handlePlay);
     socket.on("pause", handlePause);
@@ -112,6 +136,8 @@ function App() {
     socket.on("changeVideo", handleChangeVideo);
     socket.on("sendChatMessage", handleChatMessage);
     socket.on("updateUserList", handleUpdateUserList);
+    socket.on("setHost", handleSetHost);
+    socket.on("kickUser", handleKickUser);
   
     return () => {
       socket.off("play", handlePlay);
@@ -120,8 +146,10 @@ function App() {
       socket.off("changeVideo", handleChangeVideo);
       socket.off("sendChatMessage", handleChatMessage);
       socket.off("updateUserList", handleUpdateUserList);
+      socket.off("setHost", handleSetHost);
+      socket.off("kickUser", handleKickUser);
     };
-  }, [isPlaying, progress, url, chatAllMessages, userList]);
+  }, [isPlaying, progress, url, chatAllMessages, userList, isHost]);
   ////////////////////////////////
 
   return (
@@ -168,7 +196,15 @@ function App() {
       {/* userlist */}
       <div>
         {userList.map((user, index) => (
-          <p key={index}>{user.username}</p>
+          <div>
+            <p key={index}>{user.username}</p>
+            {isHost && 
+              <div>
+                <button onClick={() => {handleSetHost(user.id)}}>set host</button>
+                <button onClick={() => {handleKickUser(user.id)}}>kick</button>
+              </div>
+            }
+          </div>
         ))}
       </div>
     </div>

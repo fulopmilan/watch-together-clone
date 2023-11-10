@@ -33,7 +33,12 @@ io.on("connection", (socket) => {
       //create a new room
       rooms[roomName] = [];
       socket.join(roomName);
+      
+      //set the host server side
       socket.isHost = true;
+
+      //set the host client side
+      io.to(roomName).emit("setHost", true);
     }
 
     //console.log("User has connected to server: " + socket.id + " in room " + roomName);
@@ -43,9 +48,21 @@ io.on("connection", (socket) => {
     io.to(roomName).emit("updateUserList", rooms[roomName]);
     
     //host specific actions
+    
+    socket.on("setHost", (data) => {
+        io.to(data).emit("setHost", true);
+    })
+    socket.on("kickUser", (data) => {
+        io.to(data).emit("kickUser");
+
+        //delete from room
+        rooms[roomName] = rooms[roomName].filter(user => user.id !== data);
+        //update userlist
+        io.to(roomName).emit("updateUserList", rooms[roomName]);
+    })
+
     if (socket.isHost) {
       socket.on("progressChange", (data) => {
-        console.log(data);
         io.to(roomName).emit("changeProgress", data);
       });
 
