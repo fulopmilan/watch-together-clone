@@ -12,7 +12,6 @@ export default function Chat({message}) {
     }
 
     const onUrlSubmit = () => {
-        console.log(message);
         socket.emit("changeVideo", {message});
     }
     

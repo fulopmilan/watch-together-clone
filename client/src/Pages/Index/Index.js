@@ -5,7 +5,7 @@ export default function Index() {
 
     const [ url, setUrl ] = useState();
     
-    const onChange = (v) => {
+    const onUrlChange = (v) => {
         setUrl(v.target.value);
     }
     const findUrl = () => {
@@ -14,7 +14,7 @@ export default function Index() {
     
     return (
         <div>
-            <input onChange={onChange} type="text"/>
+            <input onChange={onUrlChange} type="text"/>
             <button onClick={findUrl}>Find</button>
         </div>
     )

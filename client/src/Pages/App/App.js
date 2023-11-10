@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom'
 import ReactPlayer from 'react-player'
-import Message from '../Index/Message/Message.js'
+import Message from './Message/Message.js'
 
 import './App.css';
 import { socket } from '../../socket.js'
@@ -14,10 +14,16 @@ function App() {
   }, [roomName]);
 
   ////////////////////////////////
-  //storing every message
+  //storing every user in the room
+  const [ userList, setUserList] = useState([]);
+  //storing client side username that isn't sent yet
+  const [ userName, setUserName] = useState("");
+
+  //storing every message in the room
   const [ chatAllMessages, setChatAllMessages] = useState([]);
   //storing client side message that aren't sent yet
   const [ chatMessage, setChatMessage] = useState("");
+
   //video settings
   const [ url, setUrl] = useState("https://www.youtube.com/watch?v=UA3gCPh3PEQ&ab_channel=BoyWithUke");
   const [ isPlaying, setPlaying ] = useState(false);
@@ -26,11 +32,23 @@ function App() {
   ////////////////////////////////
 
   ////////////////////////////////
+  //client side functions
+  const onChatMessageChange = (v) => { 
+    setChatMessage(v.target.value);
+  }
+
+  const onUserNameChange = (v) => { 
+    setUserName(v.target.value);
+  }
+  ////////////////////////////////
+
+  ////////////////////////////////
   //sending data to server
   const handleProgressChange = (v) => {
     socket.emit("progressChange", { progress: v.playedSeconds})
     setProgress(v.playedSeconds);
   }
+
   const handlePause = () => {
     setPlaying(false);
     socket.emit("pause");
@@ -41,15 +59,18 @@ function App() {
     socket.emit("play");
   };
 
-  //listen for changes in the client side input field
-  const onChatMessageChange = (v) => { 
-    setChatMessage(v.target.value);
+  //submit chat message
+  const onChatMessageSubmit = () => { 
+    if(chatMessage !== "")
+      socket.emit("sendChatMessage", { message: chatMessage})
+    setChatMessage("");
   }
 
-  //listen for the submission of the chat message
-  const onChatMessageSubmit = () => { 
-    socket.emit("sendChatMessage", { message: chatMessage})
+  const onUserNameSubmit = () => { 
+    console.log(userName);
+    socket.emit("sendUsername", { username: userName})
   }
+
   ////////////////////////////////
 
   ////////////////////////////////
@@ -65,7 +86,6 @@ function App() {
   
     const handleChangeProgress = (data) => {
       const host_progress = data.progress;
-      console.log(isPlaying);
       
       if (!(host_progress - 3 < progress && progress < host_progress + 3) && isPlaying) {
         player.current.seekTo(host_progress);
@@ -77,7 +97,13 @@ function App() {
     }
 
     const handleChatMessage = (data) => {
-      setChatAllMessages(oldChatAllMessages => [...oldChatAllMessages, data.message]);
+      console.log(data);
+      const message = data.username + " : " +data.message;
+      setChatAllMessages(oldChatAllMessages => [...oldChatAllMessages, message]);
+    }
+
+    const handleUpdateUserList = (data) => {
+      setUserList(data);
     }
   
     socket.on("play", handlePlay);
@@ -85,6 +111,7 @@ function App() {
     socket.on("changeProgress", handleChangeProgress);
     socket.on("changeVideo", handleChangeVideo);
     socket.on("sendChatMessage", handleChatMessage);
+    socket.on("updateUserList", handleUpdateUserList);
   
     return () => {
       socket.off("play", handlePlay);
@@ -92,12 +119,14 @@ function App() {
       socket.off("changeProgress", handleChangeProgress);
       socket.off("changeVideo", handleChangeVideo);
       socket.off("sendChatMessage", handleChatMessage);
+      socket.off("updateUserList", handleUpdateUserList);
     };
-  }, [isPlaying, progress, url, chatAllMessages]);
+  }, [isPlaying, progress, url, chatAllMessages, userList]);
   ////////////////////////////////
 
   return (
     <div className="App">
+      {/* video player */}
       <ReactPlayer url={url} 
         //reference this player
         ref={player}
@@ -116,13 +145,30 @@ function App() {
         //set data
         playing={isPlaying} 
       />
+
+      {/* chat input */}
       <div>
-        <input onChange={onChatMessageChange} type='text' placeholder='send message to the chat here'/>
+        <input value={chatMessage} onChange={onChatMessageChange} type='text' placeholder='send message to the chat here'/>
         <button onClick={onChatMessageSubmit}>Submit</button>
       </div>
+
+      {/* chatlist */}
       <div>
         {chatAllMessages.map((chatMessage, index) => (
           <Message key={index} message={chatMessage} />
+        ))}
+      </div>
+
+      {/* rename */}
+      <div>
+        <input value={userName} onChange={onUserNameChange} type='text' placeholder='set username'></input>
+        <button onClick={onUserNameSubmit}>Submit</button>
+      </div>
+
+      {/* userlist */}
+      <div>
+        {userList.map((user, index) => (
+          <p key={index}>{user.username}</p>
         ))}
       </div>
     </div>

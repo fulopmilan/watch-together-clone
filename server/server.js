@@ -24,23 +24,28 @@ const rooms = {};
 
 io.on("connection", (socket) => {
   socket.on("joinRoom", (roomName) => {
-    // Check if the room exists
+    //check if the room exists
     if (rooms[roomName]) {
-      // Join the existing room
+      //join the existing room
       socket.join(roomName);
       socket.isHost = false;
     } else {
-      // Create a new room
-      rooms[roomName] = true;
+      //create a new room
+      rooms[roomName] = [];
       socket.join(roomName);
       socket.isHost = true;
     }
 
-    console.log("User has connected to server: " + socket.id + " in room " + roomName);
+    //console.log("User has connected to server: " + socket.id + " in room " + roomName);
 
+    //add the user to the userlist with an unique name and update
+    rooms[roomName].push({id: socket.id, username: socket.id});
+    io.to(roomName).emit("updateUserList", rooms[roomName]);
+    
     //host specific actions
     if (socket.isHost) {
       socket.on("progressChange", (data) => {
+        console.log(data);
         io.to(roomName).emit("changeProgress", data);
       });
 
@@ -53,24 +58,35 @@ io.on("connection", (socket) => {
       });
     }
 
-    //client actions
+    //client specific actions
     socket.on("changeVideo", (data) => {
         io.to(roomName).emit("changeVideo", data);
     });
     socket.on("sendChatMessage", (data) => {
-        io.to(roomName).emit("sendChatMessage", data);
+        const message = data.message;
+        const username = rooms[roomName].find(user => user.id === socket.id).username;
+        io.to(roomName).emit("sendChatMessage", {message, username});
     });
-  });
+    socket.on("sendUsername", (data) => {
+        //change username
+        rooms[roomName].find(user => user.id === socket.id).username = data.username;
+        //update user list
+        io.to(roomName).emit("updateUserList", rooms[roomName]);
+    });
 
 
-  socket.on("disconnect", () => {
-    // Check if it's the host leaving the room
-    if (socket.isHost && socket.room) {
-      // Delete the room
-      delete rooms[socket.room];
-      delete socket.room;
-      delete socket.isHost;
-    }
+    socket.on("disconnect", () => {
+        //check if it's the host leaving the room
+        if (socket.isHost && socket.room) {
+          //delete the room
+          delete rooms[socket.room];
+          delete socket.room;
+          delete socket.isHost;
+        }
+        //delete user from the userlist and update
+        rooms[roomName] = rooms[roomName].filter(user => user.id !== socket.id);
+        io.to(roomName).emit("updateUserList", rooms[roomName]);
+      });
   });
 });
 
