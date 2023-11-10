@@ -18,7 +18,9 @@ function App() {
   }, [roomName]);
 
   ////////////////////////////////
-  //store if the client is the host
+  //storing the client's id
+  const [ clientID, setClientID ] = useState("");
+  //storing if the client is the host
   const [ isHost, setIsHost ] = useState(false);
   //storing every user in the room
   const [ userList, setUserList] = useState([]);
@@ -129,6 +131,11 @@ function App() {
     const handleKickUser = () => {
       navigate('/');
     }
+
+    const handleOwnIDSet = (data) => {
+      console.log(data);
+      setClientID(data);
+    }
   
     socket.on("play", handlePlay);
     socket.on("pause", handlePause);
@@ -138,6 +145,7 @@ function App() {
     socket.on("updateUserList", handleUpdateUserList);
     socket.on("setHost", handleSetHost);
     socket.on("kickUser", handleKickUser);
+    socket.on("setOwnID", handleOwnIDSet);
   
     return () => {
       socket.off("play", handlePlay);
@@ -148,6 +156,7 @@ function App() {
       socket.off("updateUserList", handleUpdateUserList);
       socket.off("setHost", handleSetHost);
       socket.off("kickUser", handleKickUser);
+      socket.off("setOwnID", handleOwnIDSet);
     };
   }, [isPlaying, progress, url, chatAllMessages, userList, isHost]);
   ////////////////////////////////
@@ -198,7 +207,7 @@ function App() {
         {userList.map((user, index) => (
           <div>
             <p key={index}>{user.username}</p>
-            {isHost && 
+            {(isHost && user.id != clientID) && 
               <div>
                 <button onClick={() => {handleSetHost(user.id)}}>set host</button>
                 <button onClick={() => {handleKickUser(user.id)}}>kick</button>

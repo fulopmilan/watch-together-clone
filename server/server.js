@@ -41,6 +41,9 @@ io.on("connection", (socket) => {
       io.to(roomName).emit("setHost", true);
     }
 
+    //set the id for the user client side
+    io.to(socket.id).emit("setOwnID", socket.id);
+
     //console.log("User has connected to server: " + socket.id + " in room " + roomName);
 
     //add the user to the userlist with an unique name and update
@@ -48,7 +51,6 @@ io.on("connection", (socket) => {
     io.to(roomName).emit("updateUserList", rooms[roomName]);
     
     //host specific actions
-    
     socket.on("setHost", (data) => {
         io.to(data).emit("setHost", true);
     })
