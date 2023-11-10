@@ -86,7 +86,7 @@ function App() {
 
   const onUserNameSubmit = () => { 
     console.log(userName);
-    socket.emit("sendUsername", { username: userName})
+    socket.emit("changeUsername", { username: userName})
   }
 
   ////////////////////////////////
@@ -125,6 +125,7 @@ function App() {
     }
 
     const handleSetHost = (data) => {
+      socket.emit('setHostServerSide');
       setIsHost(data);
     }
 
