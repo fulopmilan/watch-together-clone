@@ -19,7 +19,7 @@ export default function Header() {
         <div id="header">
             <div id="header-left" className="clickable" onClick={homeRedirect}>
                 <img id="header-left-picture" src="/images/github.png" alt=""/>
-                <h1 id="header-left-title">Quarantine-flix</h1>
+                <h1 id="header-left-title">Quarantine-tflix</h1>
             </div>
             <div id="header-right">
                 <a id="header-right-github" className="clickable" onClick={githubRedirect}>github</a>
