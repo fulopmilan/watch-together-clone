@@ -9,6 +9,8 @@ import ChatList from './services/ChatList/ChatList.js';
 import Rename from './services/Rename/Rename.js';
 import UserList from './services/UserList/UserList.js';
 
+import './App.css';
+
 function App() {
 
   //navigation
@@ -205,7 +207,7 @@ function App() {
   //#endregion
 
   return (
-    <div className="App">
+    <div className="app-container">
       {/* video player */}
       <ReactPlayer url={url} 
         //reference this player
@@ -224,35 +226,42 @@ function App() {
 
         //set data
         playing={isPlaying} 
-      />
 
-      {/* chat input */}
-      <ChatInput 
-        chatMessage={chatMessage} 
-        onChatMessageChange={onChatMessageChange} 
-        onChatMessageSubmit={onChatMessageSubmit}
+        //style
+        width={1280}
+        height={720}
       />
-
-      {/* chatlist */}
-      <ChatList
-        chatAllMessages={chatAllMessages} 
-      />
-
-      {/* rename */}
-      <Rename
-        userName={userName} 
-        onUserNameChange={onUserNameChange} 
-        onUserNameSubmit={onUserNameSubmit}
-      />
-
-      {/* userlist */}
-      <UserList
-        userList={userList}
-        isHost={isHost}
-        clientID={clientID}
-        handleSetHost={handleSetHost}
-        handleKickUser={handleKickUser}
-      />
+      <div>
+        <div className='app-user-container'>
+          {/* userlist */}
+          <UserList
+            userList={userList}
+            isHost={isHost}
+            clientID={clientID}
+            handleSetHost={handleSetHost}
+            handleKickUser={handleKickUser}
+          />
+          {/* rename */}
+          <Rename
+            userName={userName} 
+            onUserNameChange={onUserNameChange} 
+            onUserNameSubmit={onUserNameSubmit}
+          />
+        </div>
+          
+        <div className='app-chat-container'>
+          {/* chatlist */}
+          <ChatList
+            chatAllMessages={chatAllMessages} 
+          />
+          {/* chat input */}
+          <ChatInput 
+            chatMessage={chatMessage} 
+            onChatMessageChange={onChatMessageChange} 
+            onChatMessageSubmit={onChatMessageSubmit}
+          />
+        </div>
+      </div>
     </div>
   );
 }

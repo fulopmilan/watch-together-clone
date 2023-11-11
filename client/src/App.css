@@ -1,0 +1,15 @@
+.app-container * {
+    margin: 0 auto;
+}
+
+.app-user-container {
+    background-color: red;
+    width: 260px;
+    height: 355px;
+}
+
+.app-chat-container {
+    background-color: red;
+    width: 260px;
+    height: 355px;
+}

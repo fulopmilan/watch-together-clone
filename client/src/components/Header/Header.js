@@ -22,7 +22,7 @@ export default function Header() {
                 <h1 id="header-left-title">Quarantine-tflix</h1>
             </div>
             <div id="header-right">
-                <a id="header-right-github" className="clickable" onClick={githubRedirect}>github</a>
+                <h3 id="header-right-github" className="clickable" onClick={githubRedirect}>github</h3>
                 <button id="header-right-cta" className="clickable" onClick={ctaRedirect}>
                     join room
                 </button>
