@@ -1,10 +1,13 @@
+import React from 'react';
 import { socket } from '../../socket.js'
-export default function Chat({message}) {
+
+//react.memo for preventing unnecessary re-renders
+const Message = React.memo(({message}) => {
 
     //URL validation
     const isUrl = () => {
         try {
-          new URL(message);
+          new URL(message.split(' : ')[1]);
           return true;
         } catch (err) {
           return false;
@@ -12,7 +15,8 @@ export default function Chat({message}) {
     }
 
     const onUrlSubmit = () => {
-        socket.emit("changeVideo", {message});
+        const url = message.split(' : ')[1];
+        socket.emit("changeVideo", { url });
     }
     
     return (
@@ -21,4 +25,6 @@ export default function Chat({message}) {
             {isUrl() ? <button onClick={onUrlSubmit}>Play</button> : <></>}
         </div>
     )
-}
+});
+
+export default Message;

@@ -66,7 +66,7 @@ function App() {
   const [ chatMessage, setChatMessage] = useState("");
 
   //video settings
-  const [ url, setUrl] = useState("https://www.youtube.com/watch?v=UA3gCPh3PEQ&ab_channel=BoyWithUke");
+  const [ url, setUrl] = useState("https://www.youtube.com/watch?v=u31qwQUeGuM&ab_channel=JoomlaTemplate");
   const [ isPlaying, setPlaying ] = useState(false);
   const [ progress, setProgress ] = useState(0)
   
@@ -80,7 +80,9 @@ function App() {
   }
 
   const onUserNameChange = (v) => { 
-    setUserName(v.target.value);
+    //forbidden characters, like ":" or space
+    if(!(v.target.value.includes(':')) && !(v.target.value.includes(' ')))
+      setUserName(v.target.value);
   }
   //#endregion
 
@@ -148,7 +150,8 @@ function App() {
     };
 
     const handleChangeVideo = (data) => {
-      setUrl(data.message);
+      console.log(data);
+      setUrl(data);
     }
 
     const handleChatMessage = (data) => {

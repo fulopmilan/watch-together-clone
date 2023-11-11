@@ -4,6 +4,7 @@ const rooms = (socket, io, rooms, roomName) => {
         //join the existing room
         socket.join(roomName);
         socket.isHost = false;
+
     } else {
         //create a new room
         rooms[roomName] = [];

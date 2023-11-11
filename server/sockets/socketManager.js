@@ -19,8 +19,6 @@ const disconnect = require('./disconnect');
 
 const joinRoom = (io, socket, rooms) => {
     socket.on("joinRoom", (roomName) => {
-        roomsManager(socket, io, rooms, roomName)
-
         ////////////////////////////////
         //host specific actions
         setHost(socket, io)
@@ -35,10 +33,12 @@ const joinRoom = (io, socket, rooms) => {
         ////////////////////////////////
         //client specific actions
         changeVideo(socket, io, roomName)
+        
         changeUsername(socket, io, rooms, roomName);
         sendChatMessage(socket, io, rooms, roomName)
         ////////////////////////////////
-
+        
+        roomsManager(socket, io, rooms, roomName)
         disconnect(socket, io, rooms, roomName);
       });
 }
