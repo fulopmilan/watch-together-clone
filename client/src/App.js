@@ -105,6 +105,7 @@ function App() {
   };
 
   //sets the new host in both client-side and server-side
+  //also used for setting a new host when disconnects
   const handleSetHost = (id) => {
     //server side
     socket.emit("setHost", id);
@@ -165,7 +166,8 @@ function App() {
       setUserList(data);
     }
 
-    const handleSetHost = (data) => {
+    //also changing the host on the server side
+    const handleSetHostServerSide = (data) => {
       socket.emit('setHostServerSide');
       setIsHost(data);
     }
@@ -185,7 +187,8 @@ function App() {
       socket.on("changeVideo", handleChangeVideo);
       socket.on("sendChatMessage", handleChatMessage);
       socket.on("updateUserList", handleUpdateUserList);
-      socket.on("setHost", handleSetHost);
+      socket.on("setHost", handleSetHostServerSide);
+      socket.on("setHostOnDisconnect", handleSetHost);
       socket.on("kickUser", handleKickUser);
       socket.on("setOwnID", handleOwnIDSet);
     //#endregion
@@ -198,7 +201,8 @@ function App() {
       socket.off("changeVideo", handleChangeVideo);
       socket.off("sendChatMessage", handleChatMessage);
       socket.off("updateUserList", handleUpdateUserList);
-      socket.off("setHost", handleSetHost);
+      socket.off("setHost", handleSetHostServerSide);
+      socket.on("setHostOnDisconnect", handleSetHost);
       socket.off("kickUser", handleKickUser);
       socket.off("setOwnID", handleOwnIDSet);
       //#endregion
