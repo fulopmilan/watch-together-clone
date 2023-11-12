@@ -20,10 +20,15 @@ app.use(express.static(path.join(__dirname, "build")));
 //SERVER & CORS support
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5000",
-        methods: ["GET", "POST"]
+        //im having issues with setting the correct origins so ill leave it as "*".
+        //will be changed later because of security reasons
+        origin: "*",
+        methods: ["GET", "POST"],
+        credentials: true,
+        allowedHeaders: ["Authorization", "Content-Type"],
     }
 });
+
 
 const rooms = {};
 
