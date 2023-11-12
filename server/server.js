@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname, "build")));
 //SERVER & CORS support
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: "https://watch-together-clone-server.onrender.com/",
         methods: ["GET", "POST"]
     }
 });
