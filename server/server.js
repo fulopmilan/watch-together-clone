@@ -36,6 +36,10 @@ io.on("connection", (socket) => {
   socketManager(io, socket, rooms);
 });
 
+//serve index.html for all routes
+app.get('/*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
 
 server.listen(process.env.PORT, () => {
     console.log("Server is listening on port " + process.env.PORT);
