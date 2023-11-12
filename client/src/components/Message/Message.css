@@ -1,0 +1,5 @@
+.message {
+    word-wrap: break-word;
+    max-width: 240px;
+    white-space: normal;
+}

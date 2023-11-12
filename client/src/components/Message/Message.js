@@ -1,5 +1,6 @@
 import React from 'react';
 import { socket } from '../../socket.js'
+import './Message.css'
 
 //react.memo for preventing unnecessary re-renders
 const Message = React.memo(({message}) => {
@@ -20,11 +21,11 @@ const Message = React.memo(({message}) => {
     }
     
     return (
-        <div>
-            <p>{message}</p>
-            {isUrl() ? <button onClick={onUrlSubmit}>Play</button> : <></>}
+        <div style={{ maxWidth: '260px' }}>
+          <p className='message'>{message}</p>
+          {isUrl() ? <button onClick={onUrlSubmit}>Play</button> : <></>}
         </div>
-    )
+      )      
 });
 
 export default Message;

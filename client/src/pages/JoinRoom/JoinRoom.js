@@ -17,7 +17,7 @@ export default function CreateRoom() {
         <div id="join-room" style={{backgroundImage: "url(/images/background.png)"}}>
             <div id="content">
                 <h1 id="index-title">Join a room</h1>
-                <input id="join-room-textfield" onChange={onUrlChange} type="text" placeholder="Room ID here"/> 
+                <input id="join-room-textfield" onChange={onUrlChange} type="text" placeholder="Room name here"/> 
 
                 <br/>
 

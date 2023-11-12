@@ -2,14 +2,32 @@
     margin: 0 auto;
 }
 
-.app-user-container {
-    background-color: red;
-    width: 260px;
-    height: 355px;
+.app-container {
+    margin: 0 auto;
+    margin-top: 50px;
+    width: 1580px;
+    display: flex;
 }
 
+.app-user-container {
+    margin-bottom: 10px;
+}
+
+.app-user-container,
 .app-chat-container {
-    background-color: red;
+    border-radius: 5px;
+    background-color: #FFFFFF;
+    color: black;
     width: 260px;
     height: 355px;
+    display: flex;
+    flex-direction: column;
+}
+
+.to-bottom {
+    width: 100%;
+    margin-top: auto;
+    /* Align to the bottom */
+    display: flex;
+    flex-direction: row;
 }

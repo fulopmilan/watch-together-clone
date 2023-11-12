@@ -82,8 +82,8 @@ function App() {
   }
 
   const onUserNameChange = (v) => { 
-    //forbidden characters, like ":" or space
-    if(!(v.target.value.includes(':')) && !(v.target.value.includes(' ')))
+    //forbidden characters, like ":" or space, and make sure the names aren't very long
+    if(!(v.target.value.includes(':')) && !(v.target.value.includes(' ')) && !(v.target.value.length > 20))
       setUserName(v.target.value);
   }
   //#endregion
@@ -245,12 +245,14 @@ function App() {
             handleSetHost={handleSetHost}
             handleKickUser={handleKickUser}
           />
-          {/* rename */}
-          <Rename
-            userName={userName} 
-            onUserNameChange={onUserNameChange} 
-            onUserNameSubmit={onUserNameSubmit}
-          />
+          <div className='to-bottom'>
+            {/* rename */}
+            <Rename
+              userName={userName} 
+              onUserNameChange={onUserNameChange} 
+              onUserNameSubmit={onUserNameSubmit}
+            />
+          </div>
         </div>
           
         <div className='app-chat-container'>
@@ -258,12 +260,14 @@ function App() {
           <ChatList
             chatAllMessages={chatAllMessages} 
           />
-          {/* chat input */}
-          <ChatInput 
-            chatMessage={chatMessage} 
-            onChatMessageChange={onChatMessageChange} 
-            onChatMessageSubmit={onChatMessageSubmit}
-          />
+          <div className='to-bottom'>
+            {/* chat input */}
+            <ChatInput 
+              chatMessage={chatMessage} 
+              onChatMessageChange={onChatMessageChange} 
+              onChatMessageSubmit={onChatMessageSubmit}
+            />
+          </div>
         </div>
       </div>
     </div>
