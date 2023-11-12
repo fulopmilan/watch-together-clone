@@ -13,6 +13,10 @@ require('dotenv').config();
 const cors = require('cors');
 app.use(cors());
 
+const path = require("path");
+
+app.use(express.static(path.join(__dirname, "build")));
+
 //SERVER & CORS support
 const io = new Server(server, {
     cors: {
